@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 from flask import Flask, request
@@ -13,12 +14,14 @@ app.logger.setLevel(logging.INFO)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    app.logger.info("Webhook received %s", json.dumps(request.json, indent=2))
+    app.logger.info("webhook_received %s %s",
+                    datetime.now().isoformat(),
+                    json.dumps(request.json, indent=2))
 
     return {
-        "order_status": "accepted"
+        "status": "ACCEPTED"
     }
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=3030)
