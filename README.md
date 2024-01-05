@@ -1,16 +1,18 @@
 # Hookdeck Quickstarts
 
-![](https://img.shields.io/badge/Status-Work%20in%20progress-orange)
-
 Example applications to be used with the
-[Hookdeck quickstart guides](https://hookdeck.com/docs/quickstarts/?ref=github-quickstarts)
+[Hookdeck quickstart guides](https://hookdeck.com/docs?ref=github-quickstarts)
 demonstrating common use cases for
 [Hookdeck](https://hookdeck.com?ref=github-quickstarts) with different
 technologies:
 
 ## TypeScript
 
-- [Inbound webhook with TypeScript and Express.js](typescript/inbound)
+- [Receive a webhook with TypeScript and Express.js](typescript/inbound)
+
+## Python
+
+- [Receive a webhook with Python and Flask](python/inbound)
 
 ## Learn more
 
