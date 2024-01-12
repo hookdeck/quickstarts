@@ -1,8 +1,8 @@
-# Quickstart: Inbound webhook with TypeScript and Express.js
+# Quickstart: Inbound webhooks with Python and Flask
 
-An example application demonstrating receiving a webhook with Python and Flask.
+An example application demonstrating receiving a webhook with Python and [Flask(https://flask.palletsprojects.com/en/3.0.x/)].
 
-- Follow the [Hookdeck Inbound Webhook Quickstart](#)
+- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks)
 - Check out the [Hookdeck docs](https://hookdeck.com/docs)
 
 ## Before you begin
@@ -13,8 +13,8 @@ Ensure you have [Python 3](https://www.python.org/downloads/) and
 ## Get the code
 
 ```sh
-npx degit hookdeck/quickstarts/python/inbound hookdeck-py-inbound
-cd hookdeck-py-inbound
+git clone https://github.com/hookdeck/quickstarts hookdeck-quickstarts
+cd hookdeck-quickstarts/python/inbound
 ```
 
 ## Setup the environment
