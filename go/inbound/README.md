@@ -16,14 +16,6 @@ git clone https://github.com/hookdeck/quickstarts hookdeck-quickstarts
 cd hookdeck-quickstarts/go/inbound
 ```
 
-## Setup the environment
-
-```sh
-virtualenv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
 ## Run the app
 
 ```sh
