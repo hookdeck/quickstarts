@@ -14,6 +14,10 @@ technologies:
 
 - [Receive a webhook with Python and Flask](python/inbound)
 
+## Go
+
+- [Receive a webhook with Go and Gin](go/inbound)
+
 ## Learn more
 
-- Check out the [Hookdeck docs](https://hookdeck.com/docs)
+- Check out the [Hookdeck docs](https://hookdeck.com/docs?ref=github-quickstarts)
