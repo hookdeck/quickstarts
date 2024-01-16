@@ -12,8 +12,8 @@ app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
 
-@app.route("/webhook", methods=["POST"])
-def webhook():
+@app.route("/<path:path>", methods=["POST"])
+def handle(path):
     app.logger.info("webhook_received %s %s",
                     datetime.now().isoformat(),
                     json.dumps(request.json, indent=2))

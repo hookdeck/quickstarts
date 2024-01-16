@@ -12,7 +12,7 @@ import (
 
 func main() {
 	r := gin.Default()
-	r.POST("/webhook", func(c *gin.Context) {
+	r.POST("/*path", func(c *gin.Context) {
 		bodyAsByteArray, err := io.ReadAll(c.Request.Body)
 		jsonBody := string(bodyAsByteArray)
 

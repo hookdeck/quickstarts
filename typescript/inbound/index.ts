@@ -8,7 +8,7 @@ app.use(express.json());
 
 const port = process.env.PORT || 3030;
 
-app.post("/webhook", (req: Request, res: Response) => {
+app.post("*", (req: Request, res: Response) => {
   console.log({ webhook_received: new Date().toISOString(), body: req.body });
 
   res.json({ status: "ACCEPTED" });
