@@ -3,8 +3,8 @@
 An example application demonstrating receiving a webhook with TypeScript and
 [Express.js](https://expressjs.com/).
 
-- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks)
-- Check out the [Hookdeck docs](https://hookdeck.com/docs)
+- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks?lang=js&ref=github-quickstarts)
+- Check out the [Hookdeck docs](https://hookdeck.com/docs?ref=github-quickstarts)
 
 ## Get the code
 
