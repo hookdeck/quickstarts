@@ -1,4 +1,4 @@
-# Quickstart: Inbound webhook with TypeScript and Express.js
+# Quickstart: Inbound webhooks with TypeScript and Express.js
 
 An example application demonstrating receiving a webhook with TypeScript and
 [Express.js](https://expressjs.com/).

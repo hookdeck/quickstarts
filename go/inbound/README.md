@@ -2,8 +2,8 @@
 
 An example application demonstrating receiving a webhook with Go and the [Gin Go web framework](https://github.com/gin-gonic/gin).
 
-- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks)
-- Check out the [Hookdeck docs](https://hookdeck.com/docs)
+- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks?lang=go&ref=github-quickstarts)
+- Check out the [Hookdeck docs](https://hookdeck.com/docs?ref=github-quickstarts)
 
 ## Before you begin
 

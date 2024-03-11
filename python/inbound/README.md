@@ -2,8 +2,8 @@
 
 An example application demonstrating receiving a webhook with Python and [Flask(https://flask.palletsprojects.com/en/3.0.x/)].
 
-- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks)
-- Check out the [Hookdeck docs](https://hookdeck.com/docs)
+- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks?lang=python&ref=github-quickstarts)
+- Check out the [Hookdeck docs](https://hookdeck.com/docs?lang=js&ref=github-quickstarts)
 
 ## Before you begin
 
