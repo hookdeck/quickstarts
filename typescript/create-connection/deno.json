@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@hookdeck/sdk": "jsr:@hookdeck/sdk@^0.1.0"
+  }
+}
