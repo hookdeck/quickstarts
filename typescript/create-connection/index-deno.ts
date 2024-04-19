@@ -3,7 +3,7 @@ const env = await load();
 import { HookdeckClient } from '@hookdeck/sdk';
 
 const hookdeck = new HookdeckClient({
-  token: process.env.HOOKDECK_API_KEY
+  token: env.HOOKDECK_API_KEY
 });
 
 const connection = await hookdeck.connection.upsert({

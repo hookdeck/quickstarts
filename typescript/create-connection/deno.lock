@@ -2,18 +2,20 @@
   "version": "3",
   "packages": {
     "specifiers": {
-      "jsr:@hookdeck/sdk@^0.1.0": "jsr:@hookdeck/sdk@0.1.0",
+      "jsr:@hookdeck/sdk@^0.1.7": "jsr:@hookdeck/sdk@0.1.7",
       "npm:form-data@4.0.0": "npm:form-data@4.0.0",
       "npm:js-base64@3.7.2": "npm:js-base64@3.7.2",
+      "npm:node-fetch@2.7.0": "npm:node-fetch@2.7.0",
       "npm:qs@6.11.2": "npm:qs@6.11.2",
       "npm:url-join@4.0.1": "npm:url-join@4.0.1"
     },
     "jsr": {
-      "@hookdeck/sdk@0.1.0": {
-        "integrity": "7910aa9839dcf6be3bc5d48f4fa082f927059e4c1c9ec9e8cd23a8c72b7b8b63",
+      "@hookdeck/sdk@0.1.7": {
+        "integrity": "1e226b0a74a11718e3bc65f67b03142b30382f2fd2d42f4b9810db27b1dfaa30",
         "dependencies": [
           "npm:form-data@4.0.0",
           "npm:js-base64@3.7.2",
+          "npm:node-fetch@2.7.0",
           "npm:qs@6.11.2",
           "npm:url-join@4.0.1"
         ]
@@ -124,6 +126,12 @@
           "mime-db": "mime-db@1.52.0"
         }
       },
+      "node-fetch@2.7.0": {
+        "integrity": "sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==",
+        "dependencies": {
+          "whatwg-url": "whatwg-url@5.0.0"
+        }
+      },
       "object-inspect@1.13.1": {
         "integrity": "sha512-5qoj1RUiKOMsCCNLV1CBiPYE10sziTsnmNxkAI/rZhiD63CF7IqdFGC/XzjWjpSgLf0LxXX3bDFIh0E18f6UhQ==",
         "dependencies": {}
@@ -154,9 +162,24 @@
           "object-inspect": "object-inspect@1.13.1"
         }
       },
+      "tr46@0.0.3": {
+        "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==",
+        "dependencies": {}
+      },
       "url-join@4.0.1": {
         "integrity": "sha512-jk1+QP6ZJqyOiuEI9AEWQfju/nB2Pw466kbA0LEZljHwKeMgd9WrAEgEGxjPDD2+TNbbb37rTyhEfrCXfuKXnA==",
         "dependencies": {}
+      },
+      "webidl-conversions@3.0.1": {
+        "integrity": "sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==",
+        "dependencies": {}
+      },
+      "whatwg-url@5.0.0": {
+        "integrity": "sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==",
+        "dependencies": {
+          "tr46": "tr46@0.0.3",
+          "webidl-conversions": "webidl-conversions@3.0.1"
+        }
       }
     }
   },
@@ -167,7 +190,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@hookdeck/sdk@^0.1.0"
+      "jsr:@hookdeck/sdk@^0.1.7"
     ],
     "packageJson": {
       "dependencies": [
