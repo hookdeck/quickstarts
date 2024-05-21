@@ -10,14 +10,14 @@ updates:
   schedule:
     interval: daily
 - package-ecosystem: npm
-  directory: "/typescript/outbound"
+  directory: "/typescript/create-connection"
   schedule:
     interval: daily
 - package-ecosystem: pip
   directory: "/python/inbound"
   schedule:
     interval: daily
-- package-ecosystem: pip
-  directory: "/python/outbound"
+- package-ecosystem: gomod
+  directory: "/go/inbound"
   schedule:
     interval: daily    
