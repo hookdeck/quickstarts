@@ -1,6 +1,9 @@
 {
   "dependencies": {
-    "@hookdeck/sdk": "^0.2.2",
+    "@hookdeck/sdk": "^0.3.1",
     "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9"
   }
 }
