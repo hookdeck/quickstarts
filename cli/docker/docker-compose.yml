@@ -20,6 +20,7 @@ services:
           --header 'Accept: application/json' \
           --header 'Authorization: Bearer $HOOKDECK_API_KEY' \
           --data '{
+                    "name": "$HOOKDECK_SOURCE_NAME_to_CLI",
                     "source": {
                       "name": "$HOOKDECK_SOURCE_NAME",
                       "allowed_http_methods": [
