@@ -10,7 +10,10 @@ services:
       - |
         /bin/hookdeck version
         /bin/hookdeck ci --api-key $HOOKDECK_API_KEY
+
+        echo "Installing curl dependency. This could be done within a Dockerfile."
         apk add curl
+
         echo "Ensuring connection exists for source $HOOKDECK_SOURCE_NAME"
         curl --location --request PUT 'https://api.hookdeck.com/2024-03-01/connections' \
           --header 'Content-Type: application/json' \
@@ -32,4 +35,5 @@ services:
                       "cli_path": "/"
                     }
                   }'
-        /bin/hookdeck listen http://host.docker.internal:1234 $HOOKDECK_SOURCE_NAME
+
+        /bin/hookdeck listen http://host.docker.internal:$APP_SERVICE_PORT $HOOKDECK_SOURCE_NAME

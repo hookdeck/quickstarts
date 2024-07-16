@@ -6,6 +6,8 @@ It includes ensuring that a Hookdeck [Connection](https://hookdeck.com/docs/conn
 (a [Source](https://hookdeck.com/docs/sources?ref=github-quickstarts-cli-docker) and a [Destination](https://hookdeck.com/docs/destinations?ref=github-quickstarts-cli-docker))
 exists by running a cURL command from the container.
 
+To receive events within the docker contains, you also need to add your own web server.
+
 ## Before you begin
 
 You'll need:
@@ -24,6 +26,8 @@ cp .env.example .env
 Set `HOOKDECK_API_KEY` to the value of your Project API key, which is found in the [secrets settings](https://dashboard.hookdeck.com/settings/project/secrets).
 
 Set `HOOKDECK_SOURCE_NAME` to the name of your source. If this source does not exist, it will be created.
+
+Set `APP_SERVICE_PORT` to the port of the application running in the Docker container.
 
 ## Run
 
@@ -58,8 +62,9 @@ hookdeck  | 🔌 Event URL: https://hkdk.events/l5u7nwyghz0gec
 hookdeck  | 
 hookdeck  | Connections
 hookdeck  | CLI forwarding to /
-hookdeck  | CLI forwarding to /
-hookdeck  | CLI forwarding to /
 hookdeck  | 
 hookdeck  | Getting ready...
 hookdeck  | Ready! (^C to quit)
+```
+
+Requests to the **Event URL** from the CLI output will be forwarded to an application running on the port identified by `APP_SERVICE_PORT`. You will need to create this application.
