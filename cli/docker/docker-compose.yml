@@ -1,0 +1,40 @@
+services:
+  hookdeck:
+    image: hookdeck/hookdeck-cli:latest
+    container_name: hookdeck
+    entrypoint: ["/bin/sh","-c"]
+    env_file:
+      - path: ./.env
+        required: true
+    command:
+      - |
+        /bin/hookdeck version
+        /bin/hookdeck ci --api-key $HOOKDECK_API_KEY
+
+        echo "Installing curl dependency. This could be done within a Dockerfile."
+        apk add curl
+
+        echo "Ensuring connection exists for source $HOOKDECK_SOURCE_NAME"
+        curl --location --request PUT 'https://api.hookdeck.com/2024-03-01/connections' \
+          --header 'Content-Type: application/json' \
+          --header 'Accept: application/json' \
+          --header 'Authorization: Bearer $HOOKDECK_API_KEY' \
+          --data '{
+                    "name": "${HOOKDECK_SOURCE_NAME}_to_CLI",
+                    "source": {
+                      "name": "$HOOKDECK_SOURCE_NAME",
+                      "allowed_http_methods": [
+                        "GET",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "POST"
+                      ]
+                    },
+                    "destination": {
+                      "name": "CLI",
+                      "cli_path": "/"
+                    }
+                  }'
+
+        /bin/hookdeck listen http://host.docker.internal:$APP_SERVICE_PORT $HOOKDECK_SOURCE_NAME
