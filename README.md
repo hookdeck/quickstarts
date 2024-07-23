@@ -27,6 +27,7 @@ technologies:
 ## TypeScript
 
 - [Receive a webhook with TypeScript and Express.js](typescript/inbound)
+- [Create a Hookdeck connection with TypeScript and Node.js or Deno](typescript/create-connection)
 
 ## Python
 
@@ -35,6 +36,10 @@ technologies:
 ## Go
 
 - [Receive a webhook with Go and Gin](go/inbound)
+
+## CLI
+
+- [Run the Hookdeck CLI within a Docker container for CI/CD](cli/docker)
 
 ## Learn more
 
