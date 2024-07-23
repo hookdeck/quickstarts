@@ -58,10 +58,10 @@ hookdeck  | Dashboard
 hookdeck  | 👉 Inspect and replay events: https://dashboard.hookdeck.com?team_id=tm_zDDhLIPBQw2e
 hookdeck  | 
 hookdeck  | example-webhooks-v3 Source
-hookdeck  | 🔌 Event URL: https://hkdk.events/l5u7nwyghz0gec
+hookdeck  | 🔌 Event URL: https://hkdk.events/irq4hh3eu54hxs
 hookdeck  | 
 hookdeck  | Connections
-hookdeck  | CLI forwarding to /
+hookdeck  | example-webhooks-v3_to_CLI forwarding to /
 hookdeck  | 
 hookdeck  | Getting ready...
 hookdeck  | Ready! (^C to quit)
