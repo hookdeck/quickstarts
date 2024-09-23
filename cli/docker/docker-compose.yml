@@ -9,7 +9,7 @@ services:
     command:
       - |
         /bin/hookdeck version
-        /bin/hookdeck ci --api-key $HOOKDECK_API_KEY
+        /bin/hookdeck ci --api-key $HOOKDECK_API_KEY --name "DOCKER_CI"
 
         echo "Installing curl dependency. This could be done within a Dockerfile."
         apk add curl
