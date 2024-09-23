@@ -18,6 +18,7 @@ const app: Application = express();
 const verify = async (req: Request, res: Response, next: NextFunction) => {
   if(!HOOKDECK_WEBHOOK_SECRET) {
     console.warn("No HOOKDECK_WEBHOOK_SECRET found in environment variables. Skipping verification.")
+    next();
     return;
   }
 
