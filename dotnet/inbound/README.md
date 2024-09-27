@@ -3,14 +3,14 @@
 An example application demonstrating receiving a webhook with C# and
 [ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-6.0).
 
-- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks)
-- Check out the [Hookdeck docs](https://hookdeck.com/docs?ref=github-quickstarts)
+- Follow the [Hookdeck Inbound Webhook Quickstart](https://hookdeck.com/docs/receive-webhooks?lang=c&ref=github-quickstarts)
+- Check out the [Hookdeck docs](https://hookdeck.com/docs?lang=c&ref=github-quickstarts)
 
 ## Before you begin
 
 You'll need:
 
-- The [Hookdeck CLI](https://hookdeck.com/docs/cli?ref=github-quickstarts-dotnet)
+- The [Hookdeck CLI](https://hookdeck.com/docs/cli?lang=c&ref=github-quickstarts)
 - The [.NET CLI](https://learn.microsoft.com/en-us/dotnet/core/tools/)
 
 ## Get the code

@@ -37,6 +37,10 @@ technologies:
 
 - [Receive a webhook with Go and Gin](go/inbound)
 
+## C#
+
+- [Receive a webhook with C# and ASP.NET Core](dotnet/inbound)
+
 ## CLI
 
 - [Run the Hookdeck CLI within a Docker container for CI/CD](cli/docker)
