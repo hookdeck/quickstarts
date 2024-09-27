@@ -40,5 +40,5 @@ dotnet run
 Run the Hookdeck localtunnel using the Hookdeck CLI:
 
 ```sh
-hookdeck listen 5176 inbound-dotnet
+hookdeck listen 3030 inbound-dotnet
 ```

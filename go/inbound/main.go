@@ -76,7 +76,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3032"
+		port = "3030"
 	}
 
 	fmt.Printf("🪝 Server running at http://localhost:%s", port)
