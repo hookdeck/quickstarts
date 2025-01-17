@@ -24,7 +24,5 @@ npm run dev
 
 ```sh
 curl --location 'YOUR_HOOKDECK_URL' \
---form 'from="3522410706"' \
---form 'to="13522410706"' \
 --form 'pdf=@"example-files/test.pdf"'
 ```
