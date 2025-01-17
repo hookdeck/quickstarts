@@ -8,6 +8,7 @@ declare module 'express-serve-static-core' {
 
 import dotenv from "dotenv";
 import { verifyWebhookSignature } from "@hookdeck/sdk/webhooks";
+import multer from "multer";
 
 dotenv.config();
 
@@ -44,11 +45,39 @@ app.use(express.json({
 
 const port = process.env.PORT || 3030;
 
+// PDF upload handling example
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads')
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, `${file.fieldname}-${uniqueSuffix}.${file.originalname.split('.').pop()}`)
+  }
+})
+
+const upload = multer({ storage: storage })
+
+app.post("/uploads", verify, upload.single('pdf'), (req: Request, res: Response) => {
+  console.log({
+    webhook_received: new Date().toISOString(), 
+    path: req.path, 
+    body: req.body,
+  });
+
+  const pdf = req.body.pdf;
+  console.log({ pdf });
+
+  res.json({ status: "ACCEPTED" });
+});
+
+// Catch all general example
+
 app.post("*", verify, (req: Request, res: Response) => {
   console.log({
     webhook_received: new Date().toISOString(), 
     path: req.path, 
-    body: req.body
+    body: req.body,
   });
 
   res.json({ status: "ACCEPTED" });
