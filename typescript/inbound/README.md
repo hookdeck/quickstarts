@@ -19,3 +19,10 @@ cd hookdeck-ts-inbound
 npm i
 npm run dev
 ```
+
+## Test uploading files
+
+```sh
+curl --location 'YOUR_HOOKDECK_URL' \
+--form 'pdf=@"example-files/test.pdf"'
+```

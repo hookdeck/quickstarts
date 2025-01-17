@@ -25,3 +25,5 @@ yarn-error.log*
 # Ignore OS-specific files
 .DS_Store
 Thumbs.db
+
+/uploads/*.pdf
