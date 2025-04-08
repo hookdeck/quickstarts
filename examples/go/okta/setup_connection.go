@@ -20,11 +20,11 @@ import (
 const (
 	hookdeckAPIVersion    = "2025-01-01"
 	hookdeckAPIURLBase    = "https://api.hookdeck.com"
-	connectionName        = "okta-to-cli-go-example" // Base name for the Hookdeck connection
+	connectionName        = "okta-example-connection" // Base name for the Hookdeck connection
 	oktaSourceName        = "okta"
-	cliDestName           = "hookdeck-cli"             // Default destination name if URL not provided
-	httpDestName          = "my-http-endpoint"         // Default destination name if URL is provided
-	oktaEventHookNameBase = "Hookdeck Go Example Hook" // Base name for the Okta hook
+	cliDestName           = "hookdeck-cli"          // Default destination name if URL not provided
+	httpDestName          = "my-http-endpoint"      // Default destination name if URL is provided
+	oktaEventHookNameBase = "Hookdeck Example Hook" // Base name for the Okta hook
 )
 
 // --- Structs for Hookdeck API (PUT Connection) ---
