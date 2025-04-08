@@ -1,0 +1,383 @@
+//go:build setup
+
+package main
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"strings"
+
+	"github.com/joho/godotenv"
+	"github.com/okta/okta-sdk-golang/v5/okta"
+)
+
+const (
+	hookdeckAPIVersion = "2025-01-01"
+	hookdeckAPIURLBase = "https://api.hookdeck.com"
+	connectionName     = "okta-to-cli-go-example"
+	oktaSourceName     = "okta"
+	cliDestName        = "hookdeck-cli"
+	oktaEventHookName  = "Hookdeck Go Example Hook"
+)
+
+// --- Structs for Hookdeck API (PUT Connection) ---
+
+type HookdeckInlineSource struct {
+	Name   string                 `json:"name"`
+	Type   string                 `json:"type"`
+	Config map[string]interface{} `json:"config"`
+}
+
+type HookdeckInlineDestination struct {
+	Name   string                 `json:"name"`
+	Type   string                 `json:"type"`
+	Config map[string]interface{} `json:"config"`
+}
+
+type HookdeckPutConnectionRequest struct {
+	Name        string                    `json:"name"`
+	Source      HookdeckInlineSource      `json:"source"`
+	Destination HookdeckInlineDestination `json:"destination"`
+}
+
+// Response structure after PUT
+type HookdeckConnection struct {
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	Source      HookdeckSource      `json:"source"`
+	Destination HookdeckDestination `json:"destination"`
+}
+
+// Full Source/Destination structs as returned in the response
+type HookdeckSource struct {
+	ID     string                 `json:"id"`
+	Name   string                 `json:"name"`
+	Type   string                 `json:"type"`
+	Config map[string]interface{} `json:"config"`
+	URL    string                 `json:"url"`
+}
+
+type HookdeckDestination struct {
+	ID     string                 `json:"id"`
+	Name   string                 `json:"name"`
+	Type   string                 `json:"type"`
+	Config map[string]interface{} `json:"config"`
+}
+
+// --- Helper Functions ---
+
+func makeAPIRequest(method, urlStr, apiKey, bearerToken string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, urlStr, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	} else if bearerToken != "" {
+		req.Header.Set("Authorization", "SSWS "+bearerToken)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", "hookdeck-go-quickstart-okta-setup")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+
+	bodyBytes, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		log.Printf("Warning: failed to read response body during status check: %v", readErr)
+	}
+	resp.Body.Close()
+	resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore body for potential reading by caller
+
+	// Check status code AFTER restoring body
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		// Return the response along with the error for specific status code checks (like 400)
+		return resp, fmt.Errorf("api request %s %s failed with status %d: %s", method, urlStr, resp.StatusCode, string(bodyBytes))
+	}
+
+	return resp, nil // Success case returns response and nil error
+}
+
+// --- Main Logic ---
+
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, loading environment variables from OS.")
+	}
+
+	hookdeckAPIKey := os.Getenv("HOOKDECK_API_KEY")
+	oktaDomain := os.Getenv("OKTA_DOMAIN")
+	oktaAPIToken := os.Getenv("OKTA_API_TOKEN")
+
+	// Generate a random webhook secret for Okta inbound webhook
+	oktaWebhookSecretHeader := "x-webhook-key"
+	oktaWebhookSecret := fmt.Sprintf("%x", make([]byte, 16))
+
+	if hookdeckAPIKey == "" {
+		log.Fatal("Error: Required environment variable HOOKDECK_API_KEY must be set.")
+	}
+	if oktaDomain == "" || oktaAPIToken == "" {
+		log.Fatal("Error: Required environment variables OKTA_DOMAIN and OKTA_API_TOKEN must be set for Okta setup.")
+	}
+
+	// Ensure oktaDomain has https:// prefix for the SDK
+	if !strings.HasPrefix(oktaDomain, "https://") && !strings.HasPrefix(oktaDomain, "http://") {
+		oktaDomain = "https://" + oktaDomain
+	} else if strings.HasPrefix(oktaDomain, "http://") {
+		log.Println("Warning: OKTA_DOMAIN starts with http://, changing to https:// for SDK compatibility.")
+		oktaDomain = strings.Replace(oktaDomain, "http://", "https://", 1)
+	}
+
+	// --- Initialize Okta Client ---
+	ctx := context.TODO() // Define context separately
+	config, err := okta.NewConfiguration(
+		okta.WithOrgUrl(oktaDomain),
+		okta.WithToken(oktaAPIToken),
+		// Add other config options if needed, e.g., okta.WithRequestTimeout(30)
+	)
+	if err != nil {
+		log.Fatalf("Error creating Okta configuration: %v", err)
+	}
+	client := okta.NewAPIClient(config)
+	if client == nil {
+		log.Fatal("Failed to create Okta API client")
+	}
+
+	log.Printf("Starting Okta Event Hook setup using Hookdeck API version %s...", hookdeckAPIVersion)
+
+	// 1. Create/Update Hookdeck Connection idempotently via PUT /connections
+	log.Printf("Creating/Updating Hookdeck Connection with name '%s'...", connectionName)
+	hookdeckConnURL := fmt.Sprintf("%s/%s/connections", hookdeckAPIURLBase, hookdeckAPIVersion)
+
+	connReqPayload := HookdeckPutConnectionRequest{
+		Name: connectionName,
+		Source: HookdeckInlineSource{
+			Name: oktaSourceName,
+			Type: "WEBHOOK",
+			Config: map[string]interface{}{
+				"auth_type": "API_KEY",
+				"auth": map[string]interface{}{
+					"header_key": oktaWebhookSecretHeader,
+					"api_key":    oktaWebhookSecret,
+				},
+			},
+		},
+		Destination: HookdeckInlineDestination{
+			Name:   cliDestName,
+			Type:   "CLI",
+			Config: map[string]interface{}{"path": "/"},
+		},
+	}
+
+	connReqBody, err := json.MarshalIndent(connReqPayload, "", "  ")
+	if err != nil {
+		log.Fatalf("Error marshalling Hookdeck connection request: %v", err)
+	}
+	log.Printf("Hookdeck Connection Request Payload:\n%s\n", string(connReqBody))
+
+	connResp, err := makeAPIRequest("PUT", hookdeckConnURL, hookdeckAPIKey, "", bytes.NewBuffer(connReqBody))
+	if err != nil {
+		log.Fatalf("Error creating/updating Hookdeck connection: %v", err)
+	}
+	defer connResp.Body.Close()
+
+	var upsertedConn HookdeckConnection
+	if err := json.NewDecoder(connResp.Body).Decode(&upsertedConn); err != nil {
+		connResp.Body = io.NopCloser(bytes.NewBuffer([]byte{}))
+		bodyBytes, _ := io.ReadAll(connResp.Body)
+		log.Fatalf("Error decoding Hookdeck connection response: %v. Body: %s", err, string(bodyBytes))
+	}
+	log.Printf("Successfully upserted Hookdeck Connection (Name: %s, ID: %s)\n", upsertedConn.Name, upsertedConn.ID)
+	log.Printf("Hookdeck Source URL (for Okta): %s\n", upsertedConn.Source.URL)
+
+	// 2. Create or Update Okta Event Hook using SDK
+	log.Printf("Attempting to create/update Okta Event Hook '%s' using SDK...", oktaEventHookName)
+
+	// Define the Event Hook using SDK types
+	// Helper function or variables for string pointers
+	stringPtr := func(s string) *string { return &s }
+	authSchemeType := "HEADER"
+	hookStatus := "ACTIVE"
+
+	eventHook := okta.EventHook{
+		Name: oktaEventHookName,
+		Events: okta.EventSubscriptions{
+			Type:  "EVENT_TYPE",
+			Items: []string{"user.lifecycle.create"},
+		},
+		Channel: okta.EventHookChannel{
+			Type:    "HTTP",
+			Version: "1.0.0",
+			Config: okta.EventHookChannelConfig{
+				Uri:     upsertedConn.Source.URL,
+				Headers: []okta.EventHookChannelConfigHeader{},
+				AuthScheme: &okta.EventHookChannelConfigAuthScheme{
+					Type:  stringPtr(authSchemeType),
+					Key:   stringPtr(oktaWebhookSecretHeader),
+					Value: stringPtr(oktaWebhookSecret),
+				},
+			},
+		},
+		Status: stringPtr(hookStatus),
+	}
+
+	var finalEventHook *okta.EventHook
+	var oktaResp *okta.APIResponse
+	var oktaErr error
+
+	// Try to create the hook
+	finalEventHook, oktaResp, oktaErr = client.EventHookAPI.CreateEventHook(ctx).EventHook(eventHook).Execute()
+
+	if oktaErr != nil {
+		// Check if it failed because it already exists (Okta API returns 400 for this)
+		// oktaResp is *okta.APIResponse, check inner Response for StatusCode
+		if oktaResp != nil && oktaResp.Response != nil && oktaResp.Response.StatusCode == 400 {
+			log.Printf("Create failed (Status %d), possibly because '%s' already exists. Attempting to find and update...", oktaResp.Response.StatusCode, oktaEventHookName)
+
+			// Temporarily remove query parameters due to undefined errors
+			// qp := okta.NewQueryParams(okta.WithSearch(fmt.Sprintf("name eq \"%s\"", oktaEventHookName)))
+			// Fetch all hooks and filter manually
+			// Use the APIClient 'client' which should have EventHookAPI
+			// listResp should be *http.Response
+			hooks, listResp, listErr := client.EventHookAPI.ListEventHooks(ctx).Execute()
+
+			if listErr != nil {
+				statusCode := 0
+				if listResp != nil && listResp.Response != nil {
+					statusCode = listResp.Response.StatusCode
+				}
+				log.Fatalf("Error listing Okta Event Hooks: %v (Response Status: %d)", listErr, statusCode)
+			}
+
+			// Manual filtering after fetching all hooks
+			var existingHook *okta.EventHook
+			foundHooks := []*okta.EventHook{}
+			for _, hook := range hooks {
+				if hook.Name == oktaEventHookName {
+					// Append address (&hook) because foundHooks is []*okta.EventHook
+					foundHooks = append(foundHooks, &hook)
+				}
+			}
+
+			if len(foundHooks) == 0 {
+				log.Fatalf("Create failed, but could not find existing Okta Event Hook with name '%s'. Original create error: %v", oktaEventHookName, oktaErr)
+			} else if len(foundHooks) > 1 {
+				log.Printf("Warning: Found multiple Okta Event Hooks with name '%s'. Replacing the first one found (ID: %s).", oktaEventHookName, *foundHooks[0].Id)
+				existingHook = foundHooks[0] // Select the first match
+			} else { // Exactly one found
+				existingHook = foundHooks[0]
+			}
+
+			// Proceed with update if a single hook was found or selected
+			if existingHook != nil && existingHook.Id != nil {
+				log.Printf("Found existing hook with ID: %s. Attempting to replace...", *existingHook.Id)
+
+				// Update the existing hook
+				hookStatusActive := "ACTIVE"
+				eventHook.Status = stringPtr(hookStatusActive)
+				finalEventHook, oktaResp, oktaErr = client.EventHookAPI.ReplaceEventHook(ctx, *existingHook.Id).EventHook(eventHook).Execute()
+				if oktaErr != nil {
+					statusCode := 0
+					if oktaResp != nil && oktaResp.Response != nil {
+						statusCode = oktaResp.Response.StatusCode
+					}
+					log.Fatalf("Error replacing (PUT) Okta Event Hook '%s' (ID: %s): %v (Response Status: %d)", oktaEventHookName, *existingHook.Id, oktaErr, statusCode)
+				}
+
+				finalName := finalEventHook.Name
+				finalId := "N/A"
+				if finalEventHook.Id != nil {
+					finalId = *finalEventHook.Id
+				}
+				finalStatusValue := "N/A"
+				if finalEventHook.Status != nil {
+					finalStatusValue = *finalEventHook.Status
+				}
+				log.Printf("Successfully replaced (PUT) Okta Event Hook '%s' (ID: %s, Status: %s)\n", finalName, finalId, finalStatusValue)
+			} else if existingHook != nil && (existingHook.Id == nil || *existingHook.Id == "") {
+				log.Printf("Found existing hook named '%s' but it has no ID. Cannot replace.", oktaEventHookName)
+			}
+		} else {
+			// It was a different error during create
+			statusCode := 0 // Default status code if oktaResp is nil
+			if oktaResp != nil && oktaResp.Response != nil {
+				statusCode = oktaResp.Response.StatusCode
+			}
+			log.Fatalf("Error creating (POST) Okta Event Hook using SDK: %v (Response Status: %d)", oktaErr, statusCode)
+		}
+	} else {
+		finalName := finalEventHook.Name
+		finalId := "N/A"
+		if finalEventHook.Id != nil {
+			finalId = *finalEventHook.Id
+		}
+		finalStatusValue := "N/A"
+		if finalEventHook.Status != nil {
+			finalStatusValue = *finalEventHook.Status
+		}
+		log.Printf("Successfully created (POST) Okta Event Hook '%s' (ID: %s, Status: %s)\n", finalName, finalId, finalStatusValue)
+	}
+
+	// --- Verification and Activation (Run after successful POST or PUT) ---
+	if finalEventHook == nil || finalEventHook.Id == nil || *finalEventHook.Id == "" {
+		log.Fatal("Failed to get Okta Event Hook details after create/update.") // Should not happen
+	}
+
+	// 3. Attempt verification using SDK
+	log.Printf("Attempting to verify Okta Event Hook '%s' (ID: %s) using SDK...", finalEventHook.Name, *finalEventHook.Id)
+	verifiedHook, verifyResp, verifyErr := client.EventHookAPI.VerifyEventHook(ctx, *finalEventHook.Id).Execute()
+	if verifyErr != nil {
+		// verifyResp is *okta.APIResponse
+		statusCode := 0 // Default status code if verifyResp is nil
+		if verifyResp != nil && verifyResp.Response != nil {
+			statusCode = verifyResp.Response.StatusCode
+		}
+		log.Printf("Warning: Okta Event Hook verification call failed (Status: %d): %v. This might be okay if already verified.", statusCode, verifyErr)
+		// Keep the status from the create/update operation if verification fails
+	} else {
+		// Verification succeeded
+		verifiedName := verifiedHook.Name
+		verifiedStatusValue := "N/A"
+		if verifiedHook.Status != nil {
+			verifiedStatusValue = *verifiedHook.Status
+		}
+		log.Printf("Okta Event Hook '%s' verification call succeeded. Current Status: %s\n", verifiedName, verifiedStatusValue)
+		finalEventHook = verifiedHook // Update finalEventHook with the latest status from verification
+	}
+
+	log.Println("Setup complete!")
+	fmt.Println("\n--- Summary ---")
+	fmt.Printf("Hookdeck Connection: (Name: %s, ID: %s)\n", upsertedConn.Name, upsertedConn.ID)
+	fmt.Printf("  - Source: '%s' (Type: %s)\n", upsertedConn.Source.Name, upsertedConn.Source.Type)
+	fmt.Printf("  - Destination: '%s' (Type: %s)\n", upsertedConn.Destination.Name, upsertedConn.Destination.Type)
+	fmt.Printf("  - Source URL (for Okta): %s\n", upsertedConn.Source.URL)
+	finalName := "N/A"
+	if finalEventHook != nil {
+		finalName = finalEventHook.Name
+	}
+	finalId := "N/A"
+	if finalEventHook != nil && finalEventHook.Id != nil {
+		finalId = *finalEventHook.Id // Dereference Id pointer
+	}
+	finalStatusValue := "N/A"
+	if finalEventHook != nil && finalEventHook.Status != nil {
+		finalStatusValue = *finalEventHook.Status
+	}
+
+	fmt.Printf("Okta Event Hook: '%s' (ID: %s, Status: %s) (points or should point to the URL above)\n", finalName, finalId, finalStatusValue) // Show final status
+	fmt.Println("\nEnsure HOOKDECK_API_KEY, OKTA_DOMAIN, and OKTA_API_TOKEN environment variables are set correctly.")
+	fmt.Println("You can now run 'go run -tags setup setup_connection.go' to ensure resources are configured.")
+	fmt.Println("After setup, run 'go run main.go' (with HOOKDECK_WEBHOOK_SECRET set) and 'hookdeck listen' to receive events.")
+}
