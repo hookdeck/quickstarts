@@ -370,7 +370,7 @@ func main() {
 	hookdeckAPIKey := os.Getenv("HOOKDECK_API_KEY")
 	oktaDomain := os.Getenv("OKTA_DOMAIN")
 	oktaAPIToken := os.Getenv("OKTA_API_TOKEN")
-	webhookDestinationURL := os.Getenv("WEBHOOK_DESTINATION_URL") // Read the optional destination URL
+	webhookDestinationURL := os.Getenv("WEBHOOK_DESTINATION_URL")
 
 	// Validate required environment variables
 	if hookdeckAPIKey == "" {
