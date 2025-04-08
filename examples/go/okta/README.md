@@ -59,7 +59,7 @@ This example demonstrates how to:
     Open a terminal and run `hookdeck listen`. This command connects to Hookdeck and forwards incoming webhooks for the `hookdeck-cli` destination to `http://localhost:3030` (the default port for `main.go`).
 
     ```bash
-    hookdeck listen 3030
+    hookdeck listen 3030 okta
     ```
 
 2.  **Start the Go Web Server:**
