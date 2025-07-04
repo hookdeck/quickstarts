@@ -32,6 +32,7 @@ technologies:
 ## Python
 
 - [Receive a webhook with Python and Flask](python/inbound)
+- [Create connection, publish event with Publish API, and get events with Python and Flask](python/query)
 
 ## Go
 
