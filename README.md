@@ -16,7 +16,7 @@
 </p>
 
 
-# Hookdeck Quickstarts
+# Hookdeck Quickstarts & Examples
 
 Example applications to be used with the
 [Hookdeck quickstart guides](https://hookdeck.com/docs?ref=github-quickstarts)
@@ -28,6 +28,7 @@ technologies:
 
 - [Receive a webhook with TypeScript and Express.js](typescript/inbound)
 - [Create a Hookdeck connection with TypeScript and Node.js or Deno](typescript/create-connection)
+- [Retrieve events with filtering and detailed webhook data](typescript/get-events)
 
 ## Python
 
