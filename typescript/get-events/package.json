@@ -1,0 +1,25 @@
+{
+  "name": "get-events",
+  "version": "1.0.0",
+  "description": "CLI tool to retrieve events from Hookdeck API",
+  "main": "index.ts",
+  "bin": {
+    "get-events": "index.ts"
+  },
+  "scripts": {
+    "start": "ts-node index.ts",
+    "dev": "ts-node index.ts"
+  },
+  "keywords": ["hookdeck", "events", "cli"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "dotenv": "^17.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4"
+  }
+}
