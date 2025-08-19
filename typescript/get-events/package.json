@@ -1,25 +1,43 @@
 {
-  "name": "get-events",
+  "name": "hookdeck-get-events",
   "version": "1.0.0",
-  "description": "CLI tool to retrieve events from Hookdeck API",
-  "main": "index.ts",
+  "description": "CLI tool to retrieve events from Hookdeck API with filtering and detailed webhook event data",
+  "main": "dist/index.js",
   "bin": {
-    "get-events": "index.ts"
+    "hookdeck-get-events": "dist/index.js",
+    "get-events": "dist/index.js"
   },
   "scripts": {
     "start": "ts-node index.ts",
-    "dev": "ts-node index.ts"
+    "dev": "ts-node index.ts",
+    "build": "npx tsc",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": ["hookdeck", "events", "cli"],
+  "keywords": [
+    "hookdeck",
+    "events",
+    "cli",
+    "webhook",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hookdeck/quickstarts.git",
+    "directory": "typescript/get-events"
+  },
   "dependencies": {
     "commander": "^11.1.0",
-    "dotenv": "^17.0.1",
+    "dotenv": "^17.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   },
-  "devDependencies": {
-    "@types/node": "^22.13.4"
-  }
+  "files": [
+    "dist/",
+    "README.md"
+  ]
 }

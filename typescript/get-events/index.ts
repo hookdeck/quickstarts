@@ -1,4 +1,4 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env node
 
 import dotenv from "dotenv";
 import { Command } from "commander";
@@ -404,5 +404,8 @@ async function main() {
 }
 
 if (require.main === module) {
-  main();
+  main().catch(error => {
+    console.error('❌ Unhandled error:', error);
+    process.exit(1);
+  });
 }
