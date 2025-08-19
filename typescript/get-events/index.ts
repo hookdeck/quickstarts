@@ -34,6 +34,14 @@ interface Event {
   [key: string]: any;
 }
 
+interface DetailedEvent extends Event {
+  data?: {
+    headers?: Record<string, string>;
+    body?: any;
+    query?: Record<string, string>;
+  };
+}
+
 interface EventsResponse {
   models: Event[];
   pagination: {
@@ -53,7 +61,7 @@ class HookdeckAPIClient {
   constructor(requestsPerSecond = 1, maxRetries = 5) {
     const apiKey = process.env.HOOKDECK_API_KEY;
     if (!apiKey) {
-      console.error("Error: HOOKDECK_API_KEY environment variable is required");
+      console.error("❌ Error: HOOKDECK_API_KEY environment variable is required");
       process.exit(1);
     }
     this.apiKey = apiKey;
@@ -71,7 +79,7 @@ class HookdeckAPIClient {
     
     if (timeSinceLastRequest < this.minRequestInterval) {
       const waitTime = this.minRequestInterval - timeSinceLastRequest;
-      console.error(`⏱️  Rate limiting: waiting ${waitTime}ms...`);
+      process.stderr.write(`⏱️  Rate limiting: waiting ${waitTime}ms...\n`);
       await this.sleep(waitTime);
     }
     
@@ -119,12 +127,17 @@ class HookdeckAPIClient {
     }
   }
 
+  async getEvent(eventId: string): Promise<DetailedEvent> {
+    const url = `${this.baseUrl}/events/${eventId}`;
+    return this.makeRequest(url);
+  }
+
   async getAllEvents(
     status?: EventStatus, 
     destinationId?: string, 
     createdAtQueries?: DateQuery[],
     progressCallback?: (current: number, total: number) => void
-  ): Promise<Event[]> {
+  ): Promise<DetailedEvent[]> {
     const params = new URLSearchParams();
     
     if (status) {
@@ -151,16 +164,16 @@ class HookdeckAPIClient {
     let pageCount = 0;
 
     // First request to get total count estimate
-    console.error("🔍 Starting to fetch events...");
+    process.stderr.write("🔍 Starting to fetch events...\n");
     
     while (nextUrl) {
       pageCount++;
-      console.error(`📄 Fetching page ${pageCount}...`);
+      process.stderr.write(`📄 Fetching page ${pageCount}...\n`);
       
       const response: EventsResponse = await this.makeRequest(nextUrl);
       allEvents = allEvents.concat(response.models);
 
-      console.error(`   └─ Found ${response.models.length} events on this page (${allEvents.length} total so far)`);
+      process.stderr.write(`   └─ Found ${response.models.length} events on this page (${allEvents.length} total so far)\n`);
 
       if (progressCallback) {
         progressCallback(allEvents.length, response.count);
@@ -173,8 +186,28 @@ class HookdeckAPIClient {
       }
     }
 
-    console.error(`✅ Completed! Retrieved ${allEvents.length} events across ${pageCount} pages.`);
-    return allEvents;
+    process.stderr.write(`✅ Completed! Retrieved ${allEvents.length} events across ${pageCount} pages.\n`);
+
+    // Always fetch detailed information for each event
+    process.stderr.write(`🔍 Fetching detailed information for ${allEvents.length} events...\n`);
+    const detailedEvents: DetailedEvent[] = [];
+    
+    for (let i = 0; i < allEvents.length; i++) {
+      const event = allEvents[i];
+      process.stderr.write(`📋 Fetching details for event ${i + 1}/${allEvents.length} (${event.id})...\n`);
+      
+      try {
+        const detailedEvent = await this.getEvent(event.id);
+        detailedEvents.push(detailedEvent);
+      } catch (error) {
+        console.error(`⚠️  Failed to fetch details for event ${event.id}: ${error}`);
+        // Include the basic event without details
+        detailedEvents.push(event as DetailedEvent);
+      }
+    }
+    
+    process.stderr.write(`✅ Completed detailed fetch! Retrieved full details for ${detailedEvents.length} events.\n`);
+    return detailedEvents;
   }
 }
 
@@ -315,34 +348,34 @@ async function main() {
     const client = new HookdeckAPIClient(rateLimit, maxRetries);
     
     // Display configuration
-    console.error("⚙️  Configuration:");
+    process.stderr.write("⚙️  Configuration:\n");
     if (normalizedStatus) {
-      console.error(`   Status filter: ${normalizedStatus}`);
+      process.stderr.write(`   Status filter: ${normalizedStatus}\n`);
     }
     if (options.destinationId) {
-      console.error(`   Destination ID filter: ${options.destinationId}`);
+      process.stderr.write(`   Destination ID filter: ${options.destinationId}\n`);
     }
     if (createdAtQueries.length > 0) {
       if (lastDays) {
-        console.error(`   Date filter: Last ${lastDays} day${lastDays > 1 ? 's' : ''}`);
-        console.error(`     created_at[gte]: ${createdAtQueries[0].value}`);
+        process.stderr.write(`   Date filter: Last ${lastDays} day${lastDays > 1 ? 's' : ''}\n`);
+        process.stderr.write(`     created_at[gte]: ${createdAtQueries[0].value}\n`);
       } else {
-        console.error(`   Date filters:`);
+        process.stderr.write(`   Date filters:\n`);
         for (const query of createdAtQueries) {
           if (query.operator === 'any') {
-            console.error(`     created_at[any]: not null`);
+            process.stderr.write(`     created_at[any]: not null\n`);
           } else {
-            console.error(`     created_at[${query.operator}]: ${query.value}`);
+            process.stderr.write(`     created_at[${query.operator}]: ${query.value}\n`);
           }
         }
       }
     }
     if (options.output) {
-      console.error(`   Output file: ${options.output}`);
+      process.stderr.write(`   Output file: ${options.output}\n`);
     }
-    console.error(`   Rate limit: ${rateLimit} requests/second`);
-    console.error(`   Max retries: ${maxRetries}`);
-    console.error("");
+    process.stderr.write(`   Rate limit: ${rateLimit} requests/second\n`);
+    process.stderr.write(`   Max retries: ${maxRetries}\n`);
+    process.stderr.write("\n");
 
     const events = await client.getAllEvents(normalizedStatus, options.destinationId, createdAtQueries.length > 0 ? createdAtQueries : undefined);
     
@@ -351,8 +384,8 @@ async function main() {
     if (options.output) {
       try {
         writeFileSync(options.output, jsonOutput);
-        console.error(`💾 Output written to: ${options.output}`);
-        console.error(`📊 Total events saved: ${events.length}`);
+        process.stderr.write(`💾 Output written to: ${options.output}\n`);
+        process.stderr.write(`📊 Total events saved: ${events.length}\n`);
       } catch (writeError) {
         console.error(`❌ Failed to write to file ${options.output}: ${writeError}`);
         process.exit(1);

@@ -159,17 +159,14 @@ npm start -- --last-days 30
 
 **Combined filters:**
 ```bash
-# Failed events from the last week (using convenience option)
+# Failed events from the last week
 npm start -- --status FAILED --last-days 7 --output failed-recent.json
-
-# Failed events from the last week (using explicit date)
-npm start -- --status FAILED --created-after 2024-01-15T00:00:00Z --output failed-recent.json
 
 # Events for specific destination in date range
 npm start -- --destination-id dest_123abc --created-from 2024-01-01 --created-until 2024-01-31
 
 # Recent events with rate limiting
-npm start -- --status SUCCESSFUL --last-days 3 --rate-limit 2 --output recent-success.json
+npm start -- --status SUCCESSFUL --last-days 3 --rate-limit 0.5 --output recent-success.json
 ```
 
 ## What This Example Demonstrates
@@ -181,6 +178,7 @@ This script showcases several key concepts for working with the Hookdeck API:
 - **Filtering**: Applying query parameters to filter results by status and destination
 - **Date Queries**: Using comparison operators (gte, gt, lte, lt, any) for temporal filtering
 - **Pagination Handling**: Automatically fetching all pages of results for large datasets
+- **Individual Event Retrieval**: Fetching complete event details including headers and body
 - **Rate Limiting**: Respecting API rate limits with configurable requests per second
 - **Retry Logic**: Automatic retry with exponential backoff for 429 (Too Many Requests) errors
 - **Progress Logging**: Real-time feedback during API operations with emojis and status updates
@@ -190,14 +188,51 @@ This script showcases several key concepts for working with the Hookdeck API:
 
 ## Response Format
 
-The script outputs a JSON array of events to stdout (or to a file when using `--output`). Each event object includes:
+The script outputs a JSON array of events to stdout (or to a file when using `--output`). Each event includes complete details with headers, body, and query parameters.
+
+### Event Data Structure
+Each event object includes:
 - `id`: Unique event identifier
 - `status`: Current event status (successful, failed, etc.)
 - `destination_id`: Associated destination identifier
 - `connection_id`: Associated connection identifier
 - `created_at`: Event creation timestamp
 - `updated_at`: Last modification timestamp
+- `data.headers`: HTTP headers from the original webhook request
+- `data.body`: The webhook payload/body content
+- `data.query`: Query parameters from the webhook request
 - Additional event metadata
+
+**Example event structure:**
+```json
+{
+  "id": "evt_123abc",
+  "status": "SUCCESSFUL",
+  "destination_id": "dest_456def",
+  "connection_id": "conn_789ghi",
+  "created_at": "2024-01-01T12:00:00.000Z",
+  "updated_at": "2024-01-01T12:00:01.000Z",
+  "data": {
+    "headers": {
+      "content-type": "application/json",
+      "user-agent": "MyWebhookSender/1.0",
+      "x-webhook-signature": "sha256=..."
+    },
+    "body": {
+      "event": "user.created",
+      "user": {
+        "id": 123,
+        "email": "user@example.com"
+      }
+    },
+    "query": {
+      "timestamp": "1640995200"
+    }
+  }
+}
+```
+
+**⚠️ Performance Note:** The script automatically fetches complete event details including headers, body, and query parameters. This requires one additional API call per event, making it slower than basic listing but providing complete webhook data for analysis.
 
 ## Progress Logging
 
@@ -216,15 +251,18 @@ The script provides real-time progress updates via stderr, including:
 📄 Fetching page 1...
 ⏱️  Rate limiting: waiting 500ms...
    └─ Found 25 events on this page (25 total so far)
-📄 Fetching page 2...
-⚠️  Rate limited (429). Retrying in 2s... (attempt 1/5)
-   └─ Found 18 events on this page (43 total so far)
-✅ Completed! Retrieved 43 events across 2 pages.
+✅ Completed! Retrieved 25 events across 1 pages.
+🔍 Fetching detailed information for 25 events...
+📋 Fetching details for event 1/25 (evt_123abc)...
+📋 Fetching details for event 2/25 (evt_456def)...
+📋 Fetching details for event 3/25 (evt_789ghi)...
+...
+✅ Completed detailed fetch! Retrieved full details for 25 events.
 💾 Output written to: failed-events.json
-📊 Total events saved: 43
+📊 Total events saved: 25
 ```
 
-Progress messages are sent to stderr, so they don't interfere with JSON output to stdout.
+Progress messages are sent to stderr, so they don't interfere with JSON output to stdout. Error messages also go to stderr with clear ❌ indicators.
 
 ## Implementation Details
 
@@ -250,7 +288,8 @@ The script implements a comprehensive rate limiting strategy:
 ### API Endpoints Used
 
 This example interacts with the Hookdeck API v2024-09-01:
-- **Events Endpoint**: `GET /events` - [API Documentation](https://hookdeck.com/docs/api#retrieve-all-events)
+- **Events List Endpoint**: `GET /events` - [API Documentation](https://hookdeck.com/docs/api#retrieve-all-events)
+- **Individual Event Endpoint**: `GET /events/{event_id}` - [API Documentation](https://hookdeck.com/docs/api#retrieve-an-event)
 
 ## Learn More
 
