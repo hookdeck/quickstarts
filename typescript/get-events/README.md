@@ -26,7 +26,7 @@ HOOKDECK_API_KEY=your_api_key_here
 
 ## Running the Example
 
-### Method 1: npm scripts (recommended for local development)
+### Method 1: npm scripts (recommended)
 ```bash
 npm start -- [options]
 ```
@@ -36,27 +36,11 @@ npm start -- [options]
 ./index.ts [options]  # Requires ts-node
 ```
 
-### Method 3: Using npx (requires build first)
-```bash
-# Build the project
-npm run build
-
-# Link locally for development
-npm link
-
-# Then run from anywhere
-npx hookdeck-get-events [options]
-# or
-npx get-events [options]
-```
-
-### Method 4: Run compiled JavaScript directly
+### Method 3: Run compiled JavaScript
 ```bash
 npm run build
 ./dist/index.js [options]
 ```
-
-**Note:** For npx usage or publishing, the project must be built first (`npm run build`) to compile TypeScript to JavaScript.
 
 ### Available Options
 
@@ -143,14 +127,14 @@ To illustrate the differences, let's say you have events created on these dates:
 
 **Basic queries:**
 ```bash
-# Using npm script
+# Retrieve all events
 npm start
-
-# Using npx (after npm link)
-npx hookdeck-get-events
 
 # Save all events to a file
 npm start -- --output events.json
+
+# Filter events by status
+npm start -- --status SUCCESSFUL
 ```
 
 **Date range queries:**
@@ -159,7 +143,7 @@ npm start -- --output events.json
 npm start -- --last-days 7
 
 # Events from the last 24 hours
-npx hookdeck-get-events --last-days 1
+npm start -- --last-days 1
 
 # Events from a specific date range
 npm start -- --created-from 2024-01-01 --created-until 2024-01-31
@@ -171,7 +155,7 @@ npm start -- --created-from 2024-01-01 --created-until 2024-01-31
 npm start -- --last-days 7
 
 # Events from the last 24 hours (1 day)
-npx hookdeck-get-events --last-days 1
+npm start -- --last-days 1
 
 # Events from the last 30 days
 npm start -- --last-days 30
@@ -183,7 +167,7 @@ npm start -- --last-days 30
 npm start -- --status FAILED --last-days 7 --output failed-recent.json
 
 # Events for specific destination in date range
-npx hookdeck-get-events --destination-id dest_123abc --created-from 2024-01-01 --created-until 2024-01-31
+npm start -- --destination-id dest_123abc --created-from 2024-01-01 --created-until 2024-01-31
 
 # Recent events with rate limiting
 npm start -- --status SUCCESSFUL --last-days 3 --rate-limit 0.5 --output recent-success.json
