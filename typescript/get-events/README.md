@@ -1,0 +1,318 @@
+# Get Events Example Script
+
+A TypeScript example script demonstrating how to retrieve events from the Hookdeck API with filtering and automatic pagination. This example shows how to interact with Hookdeck's Events API to query and retrieve event data programmatically.
+
+## Prerequisites
+
+- Node.js (v16 or higher)
+- A Hookdeck API key
+
+## Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Set your Hookdeck API key as an environment variable:
+```bash
+export HOOKDECK_API_KEY=your_api_key_here
+```
+
+Or create a `.env` file:
+```
+HOOKDECK_API_KEY=your_api_key_here
+```
+
+## Running the Example
+
+### Method 1: npm scripts (recommended for local development)
+```bash
+npm start -- [options]
+```
+
+### Method 2: Direct execution
+```bash
+./index.ts [options]  # Requires ts-node
+```
+
+### Method 3: Using npx (requires build first)
+```bash
+# Build the project
+npm run build
+
+# Link locally for development
+npm link
+
+# Then run from anywhere
+npx hookdeck-get-events [options]
+# or
+npx get-events [options]
+```
+
+### Method 4: Run compiled JavaScript directly
+```bash
+npm run build
+./dist/index.js [options]
+```
+
+**Note:** For npx usage or publishing, the project must be built first (`npm run build`) to compile TypeScript to JavaScript.
+
+### Available Options
+
+The script accepts command-line arguments to demonstrate different API query capabilities:
+
+**Basic Filters:**
+- `--status <status>`: Filter events by status. Valid values: SCHEDULED, QUEUED, HOLD, SUCCESSFUL, FAILED (case-insensitive)
+- `--destination-id <destination_id>`: Filter events by destination ID
+
+**Date Filters (created_at):**
+- `--created-after <date>`: Events created **after** this date (exclusive, uses `gt` operator)
+- `--created-before <date>`: Events created **before** this date (exclusive, uses `lt` operator)  
+- `--created-from <date>`: Events created **from** this date onwards (inclusive, uses `gte` operator)
+- `--created-until <date>`: Events created **until** this date (inclusive, uses `lte` operator)
+- `--created-any`: Events that have a created_at value (not null, uses `any` operator)
+- `--last-days <days>`: Events from the last X days (e.g., `--last-days 7` for last week)
+
+> **Note:** `--last-days` cannot be combined with other date filters. It's a convenience option that automatically calculates the start date.
+
+## Date Filter Examples
+
+To illustrate the differences, let's say you have events created on these dates:
+- Event A: `2024-01-01T12:00:00Z`
+- Event B: `2024-01-02T12:00:00Z` 
+- Event C: `2024-01-03T12:00:00Z`
+
+**Exclusive filters (after/before):**
+```bash
+# --created-after 2024-01-02T12:00:00Z
+# Returns: Event C only (created AFTER 2024-01-02T12:00:00Z)
+# Event B is NOT included because it's exactly at that time
+
+# --created-before 2024-01-02T12:00:00Z  
+# Returns: Event A only (created BEFORE 2024-01-02T12:00:00Z)
+# Event B is NOT included because it's exactly at that time
+```
+
+**Inclusive filters (from/until):**
+```bash
+# --created-from 2024-01-02T12:00:00Z
+# Returns: Event B and Event C (created FROM 2024-01-02T12:00:00Z onwards)
+# Event B IS included because it's exactly at that time
+
+# --created-until 2024-01-02T12:00:00Z
+# Returns: Event A and Event B (created UNTIL 2024-01-02T12:00:00Z)  
+# Event B IS included because it's exactly at that time
+```
+
+**Common date range patterns:**
+```bash
+# Get events for exactly January 2024 (inclusive range)
+--created-from 2024-01-01T00:00:00Z --created-until 2024-01-31T23:59:59Z
+
+# Get events for exactly January 2024 (using exclusive end)
+--created-from 2024-01-01T00:00:00Z --created-before 2024-02-01T00:00:00Z
+
+# Get events from last 24 hours (exclusive)
+--created-after 2024-01-01T12:00:00Z
+
+# Get events up to a specific point (inclusive)
+--created-until 2024-01-01T12:00:00Z
+```
+
+**Quick Reference:**
+
+| Parameter | API Operator | Includes Exact Time? | Use Case |
+|-----------|-------------|---------------------|----------|
+| `--created-after` | `gt` | ❌ No (exclusive) | "Events newer than X" |
+| `--created-before` | `lt` | ❌ No (exclusive) | "Events older than X" |
+| `--created-from` | `gte` | ✅ Yes (inclusive) | "Events from X onwards" |
+| `--created-until` | `lte` | ✅ Yes (inclusive) | "Events up to and including X" |
+| `--created-any` | `any` | N/A | "Events with non-null created_at" |
+| `--last-days` | `gte` | ✅ Yes (inclusive) | "Events from X days ago until now" |
+
+**Output & Performance:**
+- `-o, --output <file>`: Write JSON output to file instead of stdout
+- `--rate-limit <rps>`: Maximum requests per second (default: 1)
+- `--max-retries <count>`: Maximum retry attempts for rate limited requests (default: 5)
+- `-h, --help`: Display help information
+
+**Date Format:** All date options accept ISO 8601 format (e.g., `2024-01-01T00:00:00Z` or `2024-01-01`)
+
+### Example Usage
+
+**Basic queries:**
+```bash
+# Using npm script
+npm start
+
+# Using npx (after npm link)
+npx hookdeck-get-events
+
+# Save all events to a file
+npm start -- --output events.json
+```
+
+**Date range queries:**
+```bash
+# Events from the last 7 days
+npm start -- --last-days 7
+
+# Events from the last 24 hours
+npx hookdeck-get-events --last-days 1
+
+# Events from a specific date range
+npm start -- --created-from 2024-01-01 --created-until 2024-01-31
+```
+
+**Convenient last-days queries:**
+```bash
+# Events from the last 7 days
+npm start -- --last-days 7
+
+# Events from the last 24 hours (1 day)
+npx hookdeck-get-events --last-days 1
+
+# Events from the last 30 days
+npm start -- --last-days 30
+```
+
+**Combined filters:**
+```bash
+# Failed events from the last week
+npm start -- --status FAILED --last-days 7 --output failed-recent.json
+
+# Events for specific destination in date range
+npx hookdeck-get-events --destination-id dest_123abc --created-from 2024-01-01 --created-until 2024-01-31
+
+# Recent events with rate limiting
+npm start -- --status SUCCESSFUL --last-days 3 --rate-limit 0.5 --output recent-success.json
+```
+
+## What This Example Demonstrates
+
+This script showcases several key concepts for working with the Hookdeck API:
+
+- **API Authentication**: Using environment variables to securely store and access API keys
+- **Event Querying**: Making HTTP requests to the Hookdeck Events API endpoint
+- **Filtering**: Applying query parameters to filter results by status and destination
+- **Date Queries**: Using comparison operators (gte, gt, lte, lt, any) for temporal filtering
+- **Pagination Handling**: Automatically fetching all pages of results for large datasets
+- **Individual Event Retrieval**: Fetching complete event details including headers and body
+- **Rate Limiting**: Respecting API rate limits with configurable requests per second
+- **Retry Logic**: Automatic retry with exponential backoff for 429 (Too Many Requests) errors
+- **Progress Logging**: Real-time feedback during API operations with emojis and status updates
+- **File Output**: Writing results to JSON files for further processing
+- **Error Handling**: Proper error handling for API failures and validation
+- **JSON Output**: Processing and displaying API response data
+
+## Response Format
+
+The script outputs a JSON array of events to stdout (or to a file when using `--output`). Each event includes complete details with headers, body, and query parameters.
+
+### Event Data Structure
+Each event object includes:
+- `id`: Unique event identifier
+- `status`: Current event status (successful, failed, etc.)
+- `destination_id`: Associated destination identifier
+- `connection_id`: Associated connection identifier
+- `created_at`: Event creation timestamp
+- `updated_at`: Last modification timestamp
+- `data.headers`: HTTP headers from the original webhook request
+- `data.body`: The webhook payload/body content
+- `data.query`: Query parameters from the webhook request
+- Additional event metadata
+
+**Example event structure:**
+```json
+{
+  "id": "evt_123abc",
+  "status": "SUCCESSFUL",
+  "destination_id": "dest_456def",
+  "connection_id": "conn_789ghi",
+  "created_at": "2024-01-01T12:00:00.000Z",
+  "updated_at": "2024-01-01T12:00:01.000Z",
+  "data": {
+    "headers": {
+      "content-type": "application/json",
+      "user-agent": "MyWebhookSender/1.0",
+      "x-webhook-signature": "sha256=..."
+    },
+    "body": {
+      "event": "user.created",
+      "user": {
+        "id": 123,
+        "email": "user@example.com"
+      }
+    },
+    "query": {
+      "timestamp": "1640995200"
+    }
+  }
+}
+```
+
+**⚠️ Performance Note:** The script automatically fetches complete event details including headers, body, and query parameters. This requires one additional API call per event, making it slower than basic listing but providing complete webhook data for analysis.
+
+## Progress Logging
+
+The script provides real-time progress updates via stderr, including:
+
+```
+⚙️  Configuration:
+   Status filter: FAILED
+   Date filter: Last 7 days
+     created_at[gte]: 2024-01-24T10:30:45.123Z
+   Output file: failed-events.json
+   Rate limit: 1 requests/second
+   Max retries: 5
+
+🔍 Starting to fetch events...
+📄 Fetching page 1...
+⏱️  Rate limiting: waiting 500ms...
+   └─ Found 25 events on this page (25 total so far)
+✅ Completed! Retrieved 25 events across 1 pages.
+🔍 Fetching detailed information for 25 events...
+📋 Fetching details for event 1/25 (evt_123abc)...
+📋 Fetching details for event 2/25 (evt_456def)...
+📋 Fetching details for event 3/25 (evt_789ghi)...
+...
+✅ Completed detailed fetch! Retrieved full details for 25 events.
+💾 Output written to: failed-events.json
+📊 Total events saved: 25
+```
+
+Progress messages are sent to stderr, so they don't interfere with JSON output to stdout. Error messages also go to stderr with clear ❌ indicators.
+
+## Implementation Details
+
+### Key Components
+
+1. **HookdeckAPIClient Class**: Encapsulates API communication logic with built-in rate limiting
+2. **Rate Limiting**: Enforces configurable requests per second to respect API limits
+3. **Retry Logic**: Handles 429 errors with exponential backoff (1s, 2s, 4s, 8s, 16s...)
+4. **Pagination Logic**: Automatically follows pagination links to retrieve complete datasets
+5. **Command-line Interface**: Uses Commander.js for argument parsing and help display
+6. **Environment Configuration**: Loads API credentials from environment variables
+
+### Rate Limiting Strategy
+
+The script implements a comprehensive rate limiting strategy:
+
+- **Proactive Rate Limiting**: Enforces minimum intervals between requests
+- **429 Error Handling**: Automatically retries when rate limited
+- **Exponential Backoff**: Increases wait time for subsequent retries (2^retry * 1000ms)
+- **Retry-After Header**: Respects server-provided retry timing when available
+- **Configurable Limits**: Adjustable requests per second and maximum retry attempts
+
+### API Endpoints Used
+
+This example interacts with the Hookdeck API v2024-09-01:
+- **Events List Endpoint**: `GET /events` - [API Documentation](https://hookdeck.com/docs/api#retrieve-all-events)
+- **Individual Event Endpoint**: `GET /events/{event_id}` - [API Documentation](https://hookdeck.com/docs/api#retrieve-an-event)
+
+## Learn More
+
+- [Hookdeck API Documentation](https://hookdeck.com/docs/api)
+- [Events API Reference](https://hookdeck.com/docs/api#retrieve-all-events)
+- [Authentication Guide](https://hookdeck.com/docs/api#authentication)
